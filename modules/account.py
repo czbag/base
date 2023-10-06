@@ -8,6 +8,7 @@ from eth_account import Account as EthereumAccount
 from web3.exceptions import TransactionNotFound
 
 from config import RPC, ERC20_ABI, BASE_TOKENS
+from settings import GAS_MULTIPLIER
 from utils.sleeping import sleep
 
 
@@ -57,16 +58,17 @@ class Account:
     ):
         random_amount = round(random.uniform(min_amount, max_amount), decimal)
         random_percent = random.randint(min_percent, max_percent)
+        percent = 1 if random_percent == 100 else random_percent / 100
 
         if from_token == "ETH":
             balance = self.w3.eth.get_balance(self.address)
-            amount_wei = int(balance / 100 * random_percent) if all_amount else Web3.to_wei(random_amount, "ether")
-            amount = Web3.from_wei(int(balance / 100 * random_percent), "ether") if all_amount else random_amount
+            amount_wei = int(balance * percent) if all_amount else Web3.to_wei(random_amount, "ether")
+            amount = Web3.from_wei(int(balance * percent), "ether") if all_amount else random_amount
         else:
             balance = self.get_balance(BASE_TOKENS[from_token])
-            amount_wei = int(balance["balance_wei"] / 100 * random_percent) \
+            amount_wei = int(balance["balance_wei"] * percent) \
                 if all_amount else int(random_amount * 10 ** balance["decimal"])
-            amount = balance["balance"] / 100 * random_percent if all_amount else random_amount
+            amount = balance["balance"] * percent if all_amount else random_amount
             balance = balance["balance_wei"]
 
         return amount_wei, amount, balance
@@ -135,7 +137,7 @@ class Account:
 
     def sign(self, transaction):
         gas = self.w3.eth.estimate_gas(transaction)
-        gas = int(gas + gas * 0.3)
+        gas = int(gas * GAS_MULTIPLIER)
 
         transaction.update({"gas": gas})
 

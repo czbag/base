@@ -2,6 +2,9 @@ import random
 
 from web3 import Web3
 from loguru import logger
+
+from utils.gas_checker import check_gas
+from utils.helpers import retry
 from .account import Account
 
 from config import (
@@ -28,6 +31,8 @@ class Base(Account):
         }
         return tx
 
+    @retry
+    @check_gas
     def deposit(
             self,
             min_amount: float,
@@ -53,23 +58,22 @@ class Base(Account):
 
         tx_data = self.get_tx_data(amount_wei)
 
-        try:
-            transaction = contract.functions.depositTransaction(
-                self.address,
-                amount_wei,
-                100000,
-                False,
-                "0x01"
-            ).build_transaction(tx_data)
+        transaction = contract.functions.depositTransaction(
+            self.address,
+            amount_wei,
+            100000,
+            False,
+            "0x01"
+        ).build_transaction(tx_data)
 
-            signed_txn = self.sign(transaction)
+        signed_txn = self.sign(transaction)
 
-            txn_hash = self.send_raw_transaction(signed_txn)
+        txn_hash = self.send_raw_transaction(signed_txn)
 
-            self.wait_until_tx_finished(txn_hash.hex())
-        except Exception as e:
-            logger.error(f"Deposit transaction on L1 network failed | error: {e}")
+        self.wait_until_tx_finished(txn_hash.hex())
 
+    @retry
+    @check_gas
     def wrap_eth(self, min_amount: float, max_amount: float, decimal: int, all_amount: bool, min_percent: int,
                  max_percent: int):
         amount_wei, amount, balance = self.get_amount(
@@ -86,25 +90,23 @@ class Base(Account):
 
         logger.info(f"[{self.account_id}][{self.address}] Wrap {amount} ETH")
 
-        try:
+        tx = {
+            "from": self.address,
+            "gasPrice": self.w3.eth.gas_price,
+            "nonce": self.w3.eth.get_transaction_count(self.address),
+            "value": amount_wei
+        }
 
-            tx = {
-                "from": self.address,
-                "gasPrice": self.w3.eth.gas_price,
-                "nonce": self.w3.eth.get_transaction_count(self.address),
-                "value": amount_wei
-            }
+        transaction = weth_contract.functions.deposit().build_transaction(tx)
 
-            transaction = weth_contract.functions.deposit().build_transaction(tx)
+        signed_txn = self.sign(transaction)
 
-            signed_txn = self.sign(transaction)
+        txn_hash = self.send_raw_transaction(signed_txn)
 
-            txn_hash = self.send_raw_transaction(signed_txn)
+        self.wait_until_tx_finished(txn_hash.hex())
 
-            self.wait_until_tx_finished(txn_hash.hex())
-        except Exception as e:
-            logger.error(f"[{self.account_id}][{self.address}] Error | {e}")
-
+    @retry
+    @check_gas
     def unwrap_eth(self, min_amount: float, max_amount: float, decimal: int, all_amount: bool, min_percent: int,
                    max_percent: int):
         amount_wei, amount, balance = self.get_amount(
@@ -121,19 +123,16 @@ class Base(Account):
 
         logger.info(f"[{self.account_id}][{self.address}] Unwrap {amount} ETH")
 
-        try:
-            tx = {
-                "from": self.address,
-                "gasPrice": self.w3.eth.gas_price,
-                "nonce": self.w3.eth.get_transaction_count(self.address)
-            }
+        tx = {
+            "from": self.address,
+            "gasPrice": self.w3.eth.gas_price,
+            "nonce": self.w3.eth.get_transaction_count(self.address)
+        }
 
-            transaction = weth_contract.functions.withdraw(amount_wei).build_transaction(tx)
+        transaction = weth_contract.functions.withdraw(amount_wei).build_transaction(tx)
 
-            signed_txn = self.sign(transaction)
+        signed_txn = self.sign(transaction)
 
-            txn_hash = self.send_raw_transaction(signed_txn)
+        txn_hash = self.send_raw_transaction(signed_txn)
 
-            self.wait_until_tx_finished(txn_hash.hex())
-        except Exception as e:
-            logger.error(f"[{self.account_id}][{self.address}] Error | {e}")
+        self.wait_until_tx_finished(txn_hash.hex())

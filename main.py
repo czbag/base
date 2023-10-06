@@ -5,9 +5,9 @@ import questionary
 from questionary import Choice
 
 from config import ACCOUNTS
+from settings import RANDOM_WALLET, IS_SLEEP, SLEEP_TO, SLEEP_FROM
 from utils.sleeping import sleep
-from utils.gas_checker import check_gas
-from settings import *
+from modules_settings import *
 
 
 def get_module():
@@ -22,17 +22,23 @@ def get_module():
             Choice("6) Swap on Pancake", swap_pancake),
             Choice("7) Swap on WooFi", swap_woofi),
             Choice("8) Swap on BaseSwap", swap_baseswap),
-            Choice("9) Swap on Odos", swap_odos),
-            Choice("10) Bungee Refuel", bungee_refuel),
-            Choice("11) Deposit Aave", deposit_aave),
-            Choice("12) Withdraw Aave", withdraw_aave),
-            Choice("13) Mint NFT on MintFun", mint_mintfun),
-            Choice("14) Send message L2Telegraph", send_message),
-            Choice("15) Mint and bridge NFT L2Telegraph", bridge_nft),
-            Choice("16) Use Multiswap", swap_multiswap),
-            Choice("17) Use custom routes", custom_routes),
-            Choice("18) Check transaction count", "tx_checker"),
-            Choice("19) Exit", "exit"),
+            Choice("9) Swap on AlienSwap", swap_alienswap),
+            Choice("10) Swap on Maverick", swap_maverick),
+            Choice("11) Swap on Odos", swap_odos),
+            Choice("12) Swap on 1inch", swap_inch),
+            Choice("13) Swap on OpenOcean", swap_openocean),
+            Choice("14) Swap on XYSwap", swap_xyswap),
+            Choice("15) Bungee Refuel", bungee_refuel),
+            Choice("16) Deposit Aave", deposit_aave),
+            Choice("17) Withdraw Aave", withdraw_aave),
+            Choice("18) Mint NFT on MintFun", mint_mintfun),
+            Choice("19) Send message L2Telegraph", send_message),
+            Choice("20) Mint and bridge NFT L2Telegraph", bridge_nft),
+            Choice("21) Swap tokens to ETH", swap_tokens),
+            Choice("22) Use Multiswap", swap_multiswap),
+            Choice("23) Use custom routes", custom_routes),
+            Choice("24) Check transaction count", "tx_checker"),
+            Choice("25) Exit", "exit"),
         ],
         qmark="⚙️ ",
         pointer="✅ "
@@ -55,7 +61,6 @@ def get_wallets():
     return wallets
 
 
-@check_gas
 def run_module(module, account_id, key):
     module(account_id, key)
 

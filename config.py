@@ -39,6 +39,15 @@ with open("data/abi/woofi/router.json", "r") as file:
 with open("data/abi/baseswap/router.json", "r") as file:
     BASESWAP_ROUTER_ABI = json.load(file)
 
+with open("data/abi/alien/abi.json", "r") as file:
+    ALIEN_ROUTER_ABI = json.load(file)
+
+with open("data/abi/maverick/position.json", "r") as file:
+    MAVERICK_POSITION_ABI = json.load(file)
+
+with open("data/abi/maverick/router.json", "r") as file:
+    MAVERICK_ROUTER_ABI = json.load(file)
+
 with open("data/abi/bungee/abi.json", "r") as file:
     BUNGEE_ABI = json.load(file)
 
@@ -86,9 +95,36 @@ BASESWAP_CONTRACTS = {
     "router": "0x327Df1E6de05895d2ab08513aaDD9313Fe505d86"
 }
 
+ALIEN_CONTRACTS = {
+    "router": "0x8c1a3cf8f83074169fe5d7ad50b978e1cd6b37c7"
+}
+
 ODOS_CONTRACT = {
     "router": "0x19ceead7105607cd444f5ad10dd51356436095a1",
-    "use_ref": True
+    "use_ref": True # If you use True, you support me 1% of the transaction amount
+}
+
+INCH_CONTRACT = {
+    "router": "0x1111111254eeb25477b68fb85ed929f73a960582",
+    "use_ref": True # If you use True, you support me 1% of the transaction amount
+}
+
+OPENOCEAN_CONTRACT = {
+    "router": "0x6352a56caadc4f1e25cd6c75970fa768a3304e64",
+    "use_ref": True  # If you use True, you support me 1% of the transaction amount
+}
+
+XYSWAP_CONTRACT = {
+    "router": "0x6acd0ec9405ccb701c57a88849c4f1cd85a3f3ab",
+    "use_ref": True  # If you use True, you support me 1% of the transaction amount
+}
+
+
+
+MAVERICK_CONTRACTS = {
+    "router": "0x32AED3Bce901DA12ca8489788F3A99fCe1056e14",
+    "pool": "0x06e6736ca9e922766279a22b75a600fe8b8473b6",
+    "pool_information": "0x6E230D0e457Ea2398FB3A22FB7f9B7F68F06a14d",
 }
 
 BUNGEE_CONTRACT = "0xe8c5b8488feafb5df316be73ede3bdc26571a773"

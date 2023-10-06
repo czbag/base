@@ -2,17 +2,17 @@ import time
 
 from loguru import logger
 from web3 import Web3
-from config import BASESWAP_ROUTER_ABI, BASESWAP_CONTRACTS, BASE_TOKENS
+from config import ALIEN_ROUTER_ABI, ALIEN_CONTRACTS, BASE_TOKENS
 from utils.gas_checker import check_gas
 from utils.helpers import retry
 from .account import Account
 
 
-class BaseSwap(Account):
+class AlienSwap(Account):
     def __init__(self, account_id: int, private_key: str) -> None:
         super().__init__(account_id=account_id, private_key=private_key, chain="base")
 
-        self.swap_contract = self.get_contract(BASESWAP_CONTRACTS["router"], BASESWAP_ROUTER_ABI)
+        self.swap_contract = self.get_contract(ALIEN_CONTRACTS["router"], ALIEN_ROUTER_ABI)
         self.tx = {
             "from": self.address,
             "gasPrice": self.w3.eth.gas_price,
@@ -49,7 +49,7 @@ class BaseSwap(Account):
     def swap_to_eth(self, from_token: str, to_token: str, amount: int, slippage: int):
         token_address = Web3.to_checksum_address(BASE_TOKENS[from_token])
 
-        self.approve(amount, token_address, BASESWAP_CONTRACTS["router"])
+        self.approve(amount, token_address, ALIEN_CONTRACTS["router"])
         self.tx.update({"nonce": self.w3.eth.get_transaction_count(self.address)})
 
         deadline = int(time.time()) + 1000000
@@ -92,16 +92,19 @@ class BaseSwap(Account):
         )
 
         logger.info(
-            f"[{self.account_id}][{self.address}] Swap on BaseSwap – {from_token} -> {to_token} | {amount} {from_token}"
+            f"[{self.account_id}][{self.address}] Swap on AlienSwap – {from_token} -> {to_token} | {amount} {from_token}"
         )
 
-        if from_token == "ETH":
-            contract_txn = self.swap_to_token(from_token, to_token, amount_wei, slippage)
-        else:
-            contract_txn = self.swap_to_eth(from_token, to_token, amount_wei, slippage)
+        try:
+            if from_token == "ETH":
+                contract_txn = self.swap_to_token(from_token, to_token, amount_wei, slippage)
+            else:
+                contract_txn = self.swap_to_eth(from_token, to_token, amount_wei, slippage)
 
-        signed_txn = self.sign(contract_txn)
+            signed_txn = self.sign(contract_txn)
 
-        txn_hash = self.send_raw_transaction(signed_txn)
+            txn_hash = self.send_raw_transaction(signed_txn)
 
-        self.wait_until_tx_finished(txn_hash.hex())
+            self.wait_until_tx_finished(txn_hash.hex())
+        except Exception as e:
+            logger.error(f"[{self.account_id}][{self.address}] Error | {e}")

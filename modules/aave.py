@@ -1,6 +1,8 @@
 from loguru import logger
 from web3 import Web3
 from config import AAVE_CONTRACT, AAVE_WETH_CONTRACT, AAVE_ABI
+from utils.gas_checker import check_gas
+from utils.helpers import retry
 from utils.sleeping import sleep
 from .account import Account
 
@@ -24,6 +26,8 @@ class Aave(Account):
 
         return amount
 
+    @retry
+    @check_gas
     def deposit(
             self,
             min_amount: float,
@@ -46,15 +50,46 @@ class Aave(Account):
             max_percent
         )
 
-        try:
-            logger.info(f"[{self.account_id}][{self.address}] Make deposit on Aave | {amount} ETH")
+        logger.info(f"[{self.account_id}][{self.address}] Make deposit on Aave | {amount} ETH")
 
-            self.tx.update({"value": amount_wei})
+        self.tx.update({"value": amount_wei})
 
-            transaction = self.contract.functions.depositETH(
+        transaction = self.contract.functions.depositETH(
+            Web3.to_checksum_address("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"),
+            self.address,
+            0
+        ).build_transaction(self.tx)
+
+        signed_txn = self.sign(transaction)
+
+        txn_hash = self.send_raw_transaction(signed_txn)
+
+        self.wait_until_tx_finished(txn_hash.hex())
+
+        if make_withdraw:
+            sleep(sleep_from, sleep_to)
+
+            self.withdraw()
+
+    @retry
+    @check_gas
+    def withdraw(self):
+        amount = self.get_deposit_amount()
+
+        if amount > 0:
+            logger.info(
+                f"[{self.account_id}][{self.address}] Make withdraw from Aave | " +
+                f"{Web3.from_wei(amount, 'ether')} ETH"
+            )
+
+            self.approve(amount, "0xD4a0e0b9149BCee3C920d2E00b5dE09138fd8bb7", AAVE_CONTRACT)
+
+            self.tx.update({"value": 0, "nonce": self.w3.eth.get_transaction_count(self.address)})
+
+            transaction = self.contract.functions.withdrawETH(
                 Web3.to_checksum_address("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"),
-                self.address,
-                0
+                amount,
+                self.address
             ).build_transaction(self.tx)
 
             signed_txn = self.sign(transaction)
@@ -62,38 +97,5 @@ class Aave(Account):
             txn_hash = self.send_raw_transaction(signed_txn)
 
             self.wait_until_tx_finished(txn_hash.hex())
-
-            if make_withdraw:
-                sleep(sleep_from, sleep_to)
-
-                self.withdraw()
-        except Exception as e:
-            logger.error(f"[{self.account_id}][{self.address}] Error | {e}")
-
-    def withdraw(self):
-        amount = self.get_deposit_amount()
-
-        if amount > 0:
-            try:
-                logger.info(
-                    f"[{self.account_id}][{self.address}] Make withdraw from Aave | " +
-                    f"{Web3.from_wei(amount, 'ether')} ETH"
-                )
-
-                self.tx.update({"value": 0, "nonce": self.w3.eth.get_transaction_count(self.address)})
-
-                transaction = self.contract.functions.withdrawETH(
-                    Web3.to_checksum_address("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"),
-                    amount,
-                    self.address
-                ).build_transaction(self.tx)
-
-                signed_txn = self.sign(transaction)
-
-                txn_hash = self.send_raw_transaction(signed_txn)
-
-                self.wait_until_tx_finished(txn_hash.hex())
-            except Exception as e:
-                logger.error(f"[{self.account_id}][{self.address}] Error | {e}")
         else:
             logger.error(f"[{self.account_id}][{self.address}] Deposit not found")

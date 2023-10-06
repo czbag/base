@@ -2,6 +2,8 @@ from loguru import logger
 from web3 import Web3
 
 from config import MINTFUN_ABI
+from utils.gas_checker import check_gas
+from utils.helpers import retry
 from .account import Account
 
 
@@ -15,6 +17,8 @@ class MintFun(Account):
             "nonce": self.w3.eth.get_transaction_count(self.address),
         }
 
+    @retry
+    @check_gas
     def mint(self, nft_contract: str, amount: int):
         contract = self.get_contract(nft_contract, MINTFUN_ABI)
 
@@ -22,13 +26,10 @@ class MintFun(Account):
 
         logger.info(f"[{self.account_id}][{self.address}] Mint {amount} NFT [{nft_name}] on Mint.Fun")
 
-        try:
-            transaction = contract.functions.mint(amount).build_transaction(self.tx)
+        transaction = contract.functions.mint(amount).build_transaction(self.tx)
 
-            signed_txn = self.sign(transaction)
+        signed_txn = self.sign(transaction)
 
-            txn_hash = self.send_raw_transaction(signed_txn)
+        txn_hash = self.send_raw_transaction(signed_txn)
 
-            self.wait_until_tx_finished(txn_hash.hex())
-        except Exception as e:
-            logger.error(f"[{self.account_id}][{self.address}] Error | {e}")
+        self.wait_until_tx_finished(txn_hash.hex())

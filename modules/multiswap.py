@@ -16,7 +16,12 @@ class Multiswap(Account):
             "pancake": Pancake,
             "woofi": WooFi,
             "baseswap": BaseSwap,
+            "alienswap": AlienSwap,
+            "maverick": Maverick,
             "odos": Odos,
+            "inch": Inch,
+            "xyswap": XYSwap,
+            "openocean": OpenOcean,
         }
 
     def get_swap_module(self, use_dex: list):
