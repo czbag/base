@@ -1,11 +1,10 @@
 # RANDOM WALLETS MODE
 RANDOM_WALLET = True  # True/False
 
-# SLEEP MODE
-IS_SLEEP = False  # True/False
+QUANTITY_RUN_ACCOUNTS = 5
 
 SLEEP_FROM = 500  # Second
-SLEEP_TO = 1000  # Second
+SLEEP_TO = 1600  # Second
 
 # GWEI CONTROL MODE
 CHECK_GWEI = False  # True/False

@@ -63,6 +63,12 @@ with open("data/abi/l2telegraph/bridge_nft.json", "r") as file:
 with open("data/abi/mintfun/abi.json", "r") as file:
     MINTFUN_ABI = json.load(file)
 
+with open("data/abi/rai/abi.json", "r") as file:
+    RAI_ABI = json.load(file)
+
+with open("data/abi/gnosis/abi.json", "r") as file:
+    SAFE_ABI = json.load(file)
+
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 BASE_BRIDGE_CONTRACT = "0x49048044D57e1C92A77f79988d21Fa8fAF74E97e"
@@ -72,7 +78,9 @@ ORBITER_CONTRACT = ""
 BASE_TOKENS = {
     "ETH": "0x4200000000000000000000000000000000000006",
     "WETH": "0x4200000000000000000000000000000000000006",
-    "USDC": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+    "USDBC": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+    "USDC": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "DAI": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
 }
 
 UNISWAP_CONTRACTS = {
@@ -101,12 +109,12 @@ ALIEN_CONTRACTS = {
 
 ODOS_CONTRACT = {
     "router": "0x19ceead7105607cd444f5ad10dd51356436095a1",
-    "use_ref": True # If you use True, you support me 1% of the transaction amount
+    "use_ref": True  # If you use True, you support me 1% of the transaction amount
 }
 
 INCH_CONTRACT = {
     "router": "0x1111111254eeb25477b68fb85ed929f73a960582",
-    "use_ref": True # If you use True, you support me 1% of the transaction amount
+    "use_ref": True  # If you use True, you support me 1% of the transaction amount
 }
 
 OPENOCEAN_CONTRACT = {
@@ -118,8 +126,6 @@ XYSWAP_CONTRACT = {
     "router": "0x6acd0ec9405ccb701c57a88849c4f1cd85a3f3ab",
     "use_ref": True  # If you use True, you support me 1% of the transaction amount
 }
-
-
 
 MAVERICK_CONTRACTS = {
     "router": "0x32AED3Bce901DA12ca8489788F3A99fCe1056e14",
@@ -138,3 +144,7 @@ MINTFUN_CONTRACT = "0xf39ac57beaf8f97b89db7a9203a4e47c17cf4391"
 L2TELEGRAPH_MESSAGE_CONTRACT = "0x64e0f6164ac110b67df9a4848707ffbcb86c87a9"
 
 L2TELEGRAPH_NFT_CONTRACT = "0x36a358b3ba1fb368e35b71ea40c7f4ab89bfd8e1"
+
+RAI_CONTRACT = "0xbc097e42bf1e6531c32c5cee945e0c014fa21964"
+
+SAFE_CONTRACT = "0xc22834581ebc8527d974f8a1c97e1bea4ef910bc"

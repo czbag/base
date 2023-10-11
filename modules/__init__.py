@@ -15,6 +15,8 @@ from .bungee import Bungee
 from .aave import Aave
 from .l2telegraph import L2Telegraph
 from .mintfun import MintFun
+from .rai import Rai
+from .safe import GnosisSafe
 from .swap_tokens import SwapTokens
 from .multiswap import Multiswap
 from .routes import Routes

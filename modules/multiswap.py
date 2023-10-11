@@ -29,7 +29,7 @@ class Multiswap(Account):
 
         return self.swap_modules[swap_module]
 
-    def swap(
+    async def swap(
             self,
             use_dex: list,
             sleep_from: int,
@@ -44,20 +44,21 @@ class Multiswap(Account):
         quantity_swap = random.randint(min_swap, max_swap)
 
         if random_swap_token:
-            path = [random.choice(["ETH", "USDC"]) for _ in range(0, quantity_swap)]
-            if path[0] == "USDC" and self.get_balance(BASE_TOKENS["USDC"])["balance"] <= 1:
+            path = [random.choice(["ETH", "USDBC"]) for _ in range(0, quantity_swap)]
+            USDBC_balance = await self.get_balance(BASE_TOKENS["USDBC"])
+            if path[0] == "USDBC" and USDBC_balance["balance"] <= 1:
                 path[0] = "ETH"
         else:
-            path = ["ETH" if _ % 2 == 0 else "USDC" for _ in range(0, quantity_swap)]
+            path = ["ETH" if _ % 2 == 0 else "USDBC" for _ in range(0, quantity_swap)]
 
         logger.info(f"[{self.account_id}][{self.address}] Start MultiSwap | quantity swaps: {quantity_swap}")
 
         for _, token in enumerate(path):
             if token == "ETH":
                 decimal = 6
-                to_token = "USDC"
+                to_token = "USDBC"
 
-                balance = self.w3.eth.get_balance(self.address)
+                balance = await self.w3.eth.get_balance(self.address)
 
                 min_amount = float(Web3.from_wei(int(balance / 100 * min_percent), "ether"))
                 max_amount = float(Web3.from_wei(int(balance / 100 * max_percent), "ether"))
@@ -65,13 +66,13 @@ class Multiswap(Account):
                 decimal = 18
                 to_token = "ETH"
 
-                balance = self.get_balance(BASE_TOKENS["USDC"])
+                balance = await self.get_balance(BASE_TOKENS["USDBC"])
 
                 min_amount = balance["balance"] if balance["balance"] <= 1 else balance["balance"] / 100 * min_percent
                 max_amount = balance["balance"] if balance["balance"] <= 1 else balance["balance"] / 100 * max_percent
 
             swap_module = self.get_swap_module(use_dex)(self.account_id, self.private_key)
-            swap_module.swap(
+            await swap_module.swap(
                 token,
                 to_token,
                 min_amount,
@@ -84,4 +85,4 @@ class Multiswap(Account):
             )
 
             if _ + 1 != len(path):
-                sleep(sleep_from, sleep_to)
+                await sleep(sleep_from, sleep_to)

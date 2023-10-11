@@ -1,3 +1,5 @@
+from typing import Dict
+
 from loguru import logger
 from web3 import Web3
 from config import AAVE_CONTRACT, AAVE_WETH_CONTRACT, AAVE_ABI
@@ -12,23 +14,26 @@ class Aave(Account):
         super().__init__(account_id=account_id, private_key=private_key, chain="base")
 
         self.contract = self.get_contract(AAVE_CONTRACT, AAVE_ABI)
-        self.tx = {
-            "chainId": self.w3.eth.chain_id,
+
+    async def get_tx_data(self) -> Dict:
+        tx = {
+            "chainId": await self.w3.eth.chain_id,
             "from": self.address,
-            "gasPrice": self.w3.eth.gas_price,
-            "nonce": self.w3.eth.get_transaction_count(self.address),
+            "nonce": await self.w3.eth.get_transaction_count(self.address),
         }
 
-    def get_deposit_amount(self):
+        return tx
+
+    async def get_deposit_amount(self):
         aave_weth_contract = self.get_contract(AAVE_WETH_CONTRACT)
 
-        amount = aave_weth_contract.functions.balanceOf(self.address).call()
+        amount = await aave_weth_contract.functions.balanceOf(self.address).call()
 
         return amount
 
     @retry
     @check_gas
-    def deposit(
+    async def deposit(
             self,
             min_amount: float,
             max_amount: float,
@@ -39,8 +44,8 @@ class Aave(Account):
             all_amount: bool,
             min_percent: int,
             max_percent: int
-    ):
-        amount_wei, amount, balance = self.get_amount(
+    ) -> None:
+        amount_wei, amount, balance = await self.get_amount(
             "ETH",
             min_amount,
             max_amount,
@@ -52,29 +57,30 @@ class Aave(Account):
 
         logger.info(f"[{self.account_id}][{self.address}] Make deposit on Aave | {amount} ETH")
 
-        self.tx.update({"value": amount_wei})
+        tx_data = await self.get_tx_data()
+        tx_data.update({"value": amount_wei})
 
-        transaction = self.contract.functions.depositETH(
+        transaction = await self.contract.functions.depositETH(
             Web3.to_checksum_address("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"),
             self.address,
             0
-        ).build_transaction(self.tx)
+        ).build_transaction(tx_data)
 
-        signed_txn = self.sign(transaction)
+        signed_txn = await self.sign(transaction)
 
-        txn_hash = self.send_raw_transaction(signed_txn)
+        txn_hash = await self.send_raw_transaction(signed_txn)
 
-        self.wait_until_tx_finished(txn_hash.hex())
+        await self.wait_until_tx_finished(txn_hash.hex())
 
         if make_withdraw:
-            sleep(sleep_from, sleep_to)
+            await sleep(sleep_from, sleep_to)
 
-            self.withdraw()
+            await self.withdraw()
 
     @retry
     @check_gas
-    def withdraw(self):
-        amount = self.get_deposit_amount()
+    async def withdraw(self) -> None:
+        amount = await self.get_deposit_amount()
 
         if amount > 0:
             logger.info(
@@ -82,20 +88,21 @@ class Aave(Account):
                 f"{Web3.from_wei(amount, 'ether')} ETH"
             )
 
-            self.approve(amount, "0xD4a0e0b9149BCee3C920d2E00b5dE09138fd8bb7", AAVE_CONTRACT)
+            await self.approve(amount, "0xD4a0e0b9149BCee3C920d2E00b5dE09138fd8bb7", AAVE_CONTRACT)
 
-            self.tx.update({"value": 0, "nonce": self.w3.eth.get_transaction_count(self.address)})
+            tx_data = await self.get_tx_data()
+            tx_data.update({"value": 0, "nonce": await self.w3.eth.get_transaction_count(self.address)})
 
-            transaction = self.contract.functions.withdrawETH(
+            transaction = await self.contract.functions.withdrawETH(
                 Web3.to_checksum_address("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"),
                 amount,
                 self.address
-            ).build_transaction(self.tx)
+            ).build_transaction(tx_data)
 
-            signed_txn = self.sign(transaction)
+            signed_txn = await self.sign(transaction)
 
-            txn_hash = self.send_raw_transaction(signed_txn)
+            txn_hash = await self.send_raw_transaction(signed_txn)
 
-            self.wait_until_tx_finished(txn_hash.hex())
+            await self.wait_until_tx_finished(txn_hash.hex())
         else:
             logger.error(f"[{self.account_id}][{self.address}] Deposit not found")

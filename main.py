@@ -2,11 +2,12 @@ import random
 import sys
 
 import questionary
+from loguru import logger
 from questionary import Choice
 
 from config import ACCOUNTS
-from settings import RANDOM_WALLET, IS_SLEEP, SLEEP_TO, SLEEP_FROM
-from utils.sleeping import sleep
+from settings import RANDOM_WALLET, SLEEP_TO, SLEEP_FROM, QUANTITY_RUN_ACCOUNTS
+from utils.helpers import get_run_accounts, update_run_accounts
 from modules_settings import *
 
 
@@ -34,11 +35,13 @@ def get_module():
             Choice("18) Mint NFT on MintFun", mint_mintfun),
             Choice("19) Send message L2Telegraph", send_message),
             Choice("20) Mint and bridge NFT L2Telegraph", bridge_nft),
-            Choice("21) Swap tokens to ETH", swap_tokens),
-            Choice("22) Use Multiswap", swap_multiswap),
-            Choice("23) Use custom routes", custom_routes),
-            Choice("24) Check transaction count", "tx_checker"),
-            Choice("25) Exit", "exit"),
+            Choice("21) Create portfolio on Ray", create_portfolio),
+            Choice("22) Create gnosis safe", create_safe),
+            Choice("23) Swap tokens to ETH", swap_tokens),
+            Choice("24) Use Multiswap", swap_multiswap),
+            Choice("25) Use custom routes", custom_routes),
+            Choice("26) Check transaction count", "tx_checker"),
+            Choice("27) Exit", "exit"),
         ],
         qmark="⚙️ ",
         pointer="✅ "
@@ -61,21 +64,43 @@ def get_wallets():
     return wallets
 
 
-def run_module(module, account_id, key):
-    module(account_id, key)
+async def run_module(module, account_id, key, sleep_time):
+    await asyncio.sleep(sleep_time)
+
+    while True:
+        run_accounts = get_run_accounts()
+
+        if len(run_accounts["accounts"]) < QUANTITY_RUN_ACCOUNTS:
+            update_run_accounts(account_id, "add")
+
+            await module(account_id, key)
+
+            update_run_accounts(account_id, "remove")
+
+            break
+        else:
+            logger.info(f'Current run accounts: {len(run_accounts["accounts"])}')
+            await asyncio.sleep(60)
 
 
-def main(module):
+async def main(module):
     wallets = get_wallets()
+
+    tasks = []
 
     if RANDOM_WALLET:
         random.shuffle(wallets)
 
-    for account in wallets:
-        run_module(module, account["id"], account["key"])
+    sleep_time = random.randint(SLEEP_FROM, SLEEP_TO)
 
-        if account != wallets[-1] and IS_SLEEP:
-            sleep(SLEEP_FROM, SLEEP_TO)
+    for account in wallets:
+        tasks.append(asyncio.create_task(
+            run_module(module, account["id"], account["key"], sleep_time)
+        ))
+
+        sleep_time += random.randint(SLEEP_FROM, SLEEP_TO)
+
+    await asyncio.gather(*tasks)
 
 
 if __name__ == '__main__':
@@ -85,7 +110,7 @@ if __name__ == '__main__':
     if module == "tx_checker":
         get_tx_count()
     else:
-        main(module)
+        asyncio.run(main(module))
 
     print("\n❤️ Subscribe to me – https://t.me/sybilwave\n")
     print("🤑 Donate me: 0x00000b0ddce0bfda4531542ad1f2f5fad7b9cde9")

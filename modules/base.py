@@ -1,4 +1,5 @@
 import random
+from typing import Dict, Union
 
 from web3 import Web3
 from loguru import logger
@@ -22,18 +23,21 @@ class Base(Account):
 
         self.base_w3 = Web3(Web3.HTTPProvider(random.choice(RPC[chain]["rpc"])))
 
-    def get_tx_data(self, value: int):
+    async def get_tx_data(self, value: Union[int, None] = None) -> Dict:
         tx = {
-            "chainId": self.w3.eth.chain_id,
-            "nonce": self.w3.eth.get_transaction_count(self.address),
+            "chainId": await self.w3.eth.chain_id,
             "from": self.address,
-            "value": value
+            "nonce": await self.w3.eth.get_transaction_count(self.address),
         }
+
+        if value:
+            tx.update({"value": value})
+
         return tx
 
     @retry
     @check_gas
-    def deposit(
+    async def deposit(
             self,
             min_amount: float,
             max_amount: float,
@@ -42,7 +46,7 @@ class Base(Account):
             min_percent: int,
             max_percent: int
     ):
-        amount_wei, amount, balance = self.get_amount(
+        amount_wei, amount, balance = await self.get_amount(
             "ETH",
             min_amount,
             max_amount,
@@ -56,9 +60,9 @@ class Base(Account):
 
         contract = self.get_contract(BASE_BRIDGE_CONTRACT, BASE_BRIDGE_ABI)
 
-        tx_data = self.get_tx_data(amount_wei)
+        tx_data = await self.get_tx_data(amount_wei)
 
-        transaction = contract.functions.depositTransaction(
+        transaction = await contract.functions.depositTransaction(
             self.address,
             amount_wei,
             100000,
@@ -66,17 +70,24 @@ class Base(Account):
             "0x01"
         ).build_transaction(tx_data)
 
-        signed_txn = self.sign(transaction)
+        signed_txn = await self.sign(transaction)
 
-        txn_hash = self.send_raw_transaction(signed_txn)
+        txn_hash = await self.send_raw_transaction(signed_txn)
 
-        self.wait_until_tx_finished(txn_hash.hex())
+        await self.wait_until_tx_finished(txn_hash.hex())
 
     @retry
     @check_gas
-    def wrap_eth(self, min_amount: float, max_amount: float, decimal: int, all_amount: bool, min_percent: int,
-                 max_percent: int):
-        amount_wei, amount, balance = self.get_amount(
+    async def wrap_eth(
+            self,
+            min_amount: float,
+            max_amount: float,
+            decimal: int,
+            all_amount: bool,
+            min_percent: int,
+            max_percent: int
+    ):
+        amount_wei, amount, balance = await self.get_amount(
             "ETH",
             min_amount,
             max_amount,
@@ -90,26 +101,28 @@ class Base(Account):
 
         logger.info(f"[{self.account_id}][{self.address}] Wrap {amount} ETH")
 
-        tx = {
-            "from": self.address,
-            "gasPrice": self.w3.eth.gas_price,
-            "nonce": self.w3.eth.get_transaction_count(self.address),
-            "value": amount_wei
-        }
+        tx_data = await self.get_tx_data(amount_wei)
 
-        transaction = weth_contract.functions.deposit().build_transaction(tx)
+        transaction = await weth_contract.functions.deposit().build_transaction(tx_data)
 
-        signed_txn = self.sign(transaction)
+        signed_txn = await self.sign(transaction)
 
-        txn_hash = self.send_raw_transaction(signed_txn)
+        txn_hash = await self.send_raw_transaction(signed_txn)
 
-        self.wait_until_tx_finished(txn_hash.hex())
+        await self.wait_until_tx_finished(txn_hash.hex())
 
     @retry
     @check_gas
-    def unwrap_eth(self, min_amount: float, max_amount: float, decimal: int, all_amount: bool, min_percent: int,
-                   max_percent: int):
-        amount_wei, amount, balance = self.get_amount(
+    async def unwrap_eth(
+            self,
+            min_amount: float,
+            max_amount: float,
+            decimal: int,
+            all_amount: bool,
+            min_percent: int,
+            max_percent: int
+    ):
+        amount_wei, amount, balance = await self.get_amount(
             "WETH",
             min_amount,
             max_amount,
@@ -123,16 +136,12 @@ class Base(Account):
 
         logger.info(f"[{self.account_id}][{self.address}] Unwrap {amount} ETH")
 
-        tx = {
-            "from": self.address,
-            "gasPrice": self.w3.eth.gas_price,
-            "nonce": self.w3.eth.get_transaction_count(self.address)
-        }
+        tx_data = await self.get_tx_data()
 
-        transaction = weth_contract.functions.withdraw(amount_wei).build_transaction(tx)
+        transaction = await weth_contract.functions.withdraw(amount_wei).build_transaction(tx_data)
 
-        signed_txn = self.sign(transaction)
+        signed_txn = await self.sign(transaction)
 
-        txn_hash = self.send_raw_transaction(signed_txn)
+        txn_hash = await self.send_raw_transaction(signed_txn)
 
-        self.wait_until_tx_finished(txn_hash.hex())
+        await self.wait_until_tx_finished(txn_hash.hex())

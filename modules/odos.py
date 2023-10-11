@@ -1,3 +1,6 @@
+from typing import Dict
+
+import aiohttp
 import requests
 
 from loguru import logger
@@ -13,11 +16,20 @@ class Odos(Account):
     def __init__(self, account_id: int, private_key: str) -> None:
         super().__init__(account_id=account_id, private_key=private_key, chain="base")
 
-    def quote(self, from_token: str, to_token: str, amount: int, slippage: float):
+    async def get_tx_data(self) -> Dict:
+        tx = {
+            "chainId": await self.w3.eth.chain_id,
+            "from": self.address,
+            "nonce": await self.w3.eth.get_transaction_count(self.address),
+        }
+
+        return tx
+
+    async def quote(self, from_token: str, to_token: str, amount: int, slippage: float):
         url = "https://api.odos.xyz/sor/quote/v2"
 
         data = {
-            "chainId": self.w3.eth.chain_id,
+            "chainId": await self.w3.eth.chain_id,
             "inputTokens": [
                 {
                     "tokenAddress": Web3.to_checksum_address(from_token),
@@ -36,18 +48,21 @@ class Odos(Account):
             "compact": True
         }
 
-        response = requests.post(
-            url=url,
-            headers={"Content-Type": "application/json"},
-            json=data
-        )
+        async with aiohttp.ClientSession() as session:
+            response = await session.post(
+                url=url,
+                headers={"Content-Type": "application/json"},
+                json=data
+            )
 
-        if response.status_code == 200:
-            return response.json()
-        else:
-            logger.error(f"[{self.account_id}][{self.address}] Bad Odos request")
+            if response.status == 200:
+                response_data = await response.json()
 
-    def assemble(self, path_id):
+                return response_data
+            else:
+                logger.error(f"[{self.account_id}][{self.address}] Bad Odos request")
+
+    async def assemble(self, path_id):
         url = "https://api.odos.xyz/sor/assemble"
 
         data = {
@@ -56,20 +71,23 @@ class Odos(Account):
             "simulate": False,
         }
 
-        response = requests.post(
-            url=url,
-            headers={"Content-Type": "application/json"},
-            json=data
-        )
+        async with aiohttp.ClientSession() as session:
+            response = await session.post(
+                url=url,
+                headers={"Content-Type": "application/json"},
+                json=data
+            )
 
-        if response.status_code == 200:
-            return response.json()
-        else:
-            logger.error(f"[{self.account_id}][{self.address}] Bad Odos request")
+            if response.status == 200:
+                response_data = await response.json()
+
+                return response_data
+            else:
+                logger.error(f"[{self.account_id}][{self.address}] Bad Odos request")
 
     @retry
     @check_gas
-    def swap(
+    async def swap(
             self,
             from_token: str,
             to_token: str,
@@ -81,7 +99,7 @@ class Odos(Account):
             min_percent: int,
             max_percent: int
     ):
-        amount_wei, amount, balance = self.get_amount(
+        amount_wei, amount, balance = await self.get_amount(
             from_token,
             min_amount,
             max_amount,
@@ -99,20 +117,25 @@ class Odos(Account):
         to_token = ZERO_ADDRESS if to_token == "ETH" else BASE_TOKENS[to_token]
 
         if from_token != ZERO_ADDRESS:
-            self.approve(amount_wei, from_token, Web3.to_checksum_address(ODOS_CONTRACT["router"]))
+            await self.approve(amount_wei, from_token, Web3.to_checksum_address(ODOS_CONTRACT["router"]))
 
-        quote_data = self.quote(from_token, to_token, amount_wei, slippage)
+        quote_data = await self.quote(from_token, to_token, amount_wei, slippage)
 
-        transaction_data = self.assemble(quote_data["pathId"])
+        transaction_data = await self.assemble(quote_data["pathId"])
 
         transaction = transaction_data["transaction"]
 
-        transaction["chainId"] = self.w3.eth.chain_id
+        tx_data = await self.get_tx_data()
+        tx_data.update(
+            {
+                "to": Web3.to_checksum_address(transaction["to"]),
+                "data": transaction["data"],
+                "value": int(transaction["value"]),
+            }
+        )
 
-        transaction["value"] = int(transaction["value"])
+        signed_txn = await self.sign(tx_data)
 
-        signed_txn = self.sign(transaction)
+        txn_hash = await self.send_raw_transaction(signed_txn)
 
-        txn_hash = self.send_raw_transaction(signed_txn)
-
-        self.wait_until_tx_finished(txn_hash.hex())
+        await self.wait_until_tx_finished(txn_hash.hex())

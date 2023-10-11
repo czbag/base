@@ -24,22 +24,21 @@ class Orbiter(Account):
             "base": 9021,
         }
 
-    def get_tx_data(self, value: float, destination_chain: str):
+    async def get_tx_data(self, value: float, destination_chain: str):
         amount = int(Web3.to_wei(value, "ether") + self.bridge_codes[destination_chain])
 
         tx = {
-            "chainId": self.w3.eth.chain_id,
-            "nonce": self.w3.eth.get_transaction_count(self.address),
+            "chainId": await self.w3.eth.chain_id,
+            "nonce": await self.w3.eth.get_transaction_count(self.address),
             "to": Web3.to_checksum_address(ORBITER_CONTRACT),
             "value": amount,
-            "gasPrice": self.w3.eth.gas_price,
             "from": self.address
         }
         return tx
 
     @retry
     @check_gas
-    def bridge(
+    async def bridge(
         self,
         destination_chain: str,
         min_amount: float,
@@ -49,7 +48,7 @@ class Orbiter(Account):
         min_percent: int,
         max_percent: int
     ):
-        amount_wei, amount, balance = self.get_amount(
+        amount_wei, amount, balance = await self.get_amount(
             "ETH",
             min_amount,
             max_amount,
@@ -66,17 +65,14 @@ class Orbiter(Account):
         else:
             logger.info(f"[{self.account_id}][{self.address}] Bridge {self.chain} –> {destination_chain} | {amount} ETH")
 
-            tx_data = self.get_tx_data(amount, destination_chain)
-            balance = self.w3.eth.get_balance(self.address)
+            tx_data = await self.get_tx_data(amount, destination_chain)
+            balance = await self.w3.eth.get_balance(self.address)
 
             if tx_data["value"] >= balance:
                 logger.error(f"[{self.account_id}][{self.address}] Insufficient funds!")
             else:
-                gas_limit = self.w3.eth.estimate_gas(tx_data)
-                tx_data.update({'gas': gas_limit})
+                signed_txn = await self.sign(tx_data)
 
-                signed_txn = self.sign(tx_data)
+                txn_hash = await self.send_raw_transaction(signed_txn)
 
-                txn_hash = self.send_raw_transaction(signed_txn)
-
-                self.wait_until_tx_finished(txn_hash.hex())
+                await self.wait_until_tx_finished(txn_hash.hex())
