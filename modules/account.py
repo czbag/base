@@ -143,11 +143,11 @@ class Account:
                 await asyncio.sleep(1)
 
     async def sign(self, transaction) -> Any:
+        max_priority_fee_per_gas = int(await self.w3.eth.max_priority_fee * GAS_MULTIPLIER)
+        max_fee_per_gas = int((await self.w3.eth.gas_price + max_priority_fee_per_gas) * GAS_MULTIPLIER)
+
         gas = await self.w3.eth.estimate_gas(transaction)
         gas = int(gas * GAS_MULTIPLIER)
-
-        max_priority_fee_per_gas = await self.w3.eth.max_priority_fee
-        max_fee_per_gas = int(max_priority_fee_per_gas * GAS_MULTIPLIER)
 
         transaction.update(
             {
