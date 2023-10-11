@@ -64,8 +64,9 @@ def get_wallets():
     return wallets
 
 
-async def run_module(module, account_id, key, sleep_time):
-    await asyncio.sleep(sleep_time)
+async def run_module(module, account_id, key, sleep_time, start_id):
+    if start_id != 1:
+        await asyncio.sleep(sleep_time)
 
     while True:
         run_accounts = get_run_accounts()
@@ -93,9 +94,9 @@ async def main(module):
 
     sleep_time = random.randint(SLEEP_FROM, SLEEP_TO)
 
-    for account in wallets:
+    for _, account in enumerate(wallets, start=1):
         tasks.append(asyncio.create_task(
-            run_module(module, account["id"], account["key"], sleep_time)
+            run_module(module, account["id"], account["key"], sleep_time, _)
         ))
 
         sleep_time += random.randint(SLEEP_FROM, SLEEP_TO)
