@@ -120,7 +120,6 @@ class Account:
             await self.wait_until_tx_finished(txn_hash.hex())
 
             await sleep(5, 20)
-            await asyncio.sleep(5)
 
     async def wait_until_tx_finished(self, hash: str, max_wait_time=180) -> None:
         start_time = time.time()

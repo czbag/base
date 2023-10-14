@@ -69,6 +69,9 @@ with open("data/abi/rai/abi.json", "r") as file:
 with open("data/abi/gnosis/abi.json", "r") as file:
     SAFE_ABI = json.load(file)
 
+with open("data/abi/zerius/abi.json", "r") as file:
+    ZERIUS_ABI = json.load(file)
+
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 BASE_BRIDGE_CONTRACT = "0x49048044D57e1C92A77f79988d21Fa8fAF74E97e"
@@ -148,3 +151,5 @@ L2TELEGRAPH_NFT_CONTRACT = "0x36a358b3ba1fb368e35b71ea40c7f4ab89bfd8e1"
 RAI_CONTRACT = "0xbc097e42bf1e6531c32c5cee945e0c014fa21964"
 
 SAFE_CONTRACT = "0xc22834581ebc8527d974f8a1c97e1bea4ef910bc"
+
+ZERIUS_CONTRACT = "0x178608ffe2cca5d36f3fc6e69426c4d3a5a74a41"

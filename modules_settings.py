@@ -464,6 +464,23 @@ async def mint_mintfun(account_id, key):
     await mintfun.mint(nft_contract, amount)
 
 
+async def mint_zerius(account_id, key):
+    """
+    Mint + bridge Zerius NFT
+    ______________________________________________________
+    chains - list chains for random chain bridge: ethereum, arbitrum, optimism, polygon, bsc, avalanche, zora
+    Disclaimer - The Mint function should be called "mint", to make sure of this, look at the name in Rabby Wallet or in explorer
+    """
+
+    chains = ["zora"]
+
+    sleep_from = 10
+    sleep_to = 20
+
+    zerius = Zerius(account_id, key)
+    await zerius.bridge(chains, sleep_from, sleep_to)
+
+
 async def swap_tokens(account_id, key):
     """
     SwapTokens module: Automatically swap tokens to ETH
