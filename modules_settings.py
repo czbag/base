@@ -468,7 +468,7 @@ async def mint_zerius(account_id, key):
     """
     Mint + bridge Zerius NFT
     ______________________________________________________
-    chains - list chains for random chain bridge: ethereum, arbitrum, optimism, polygon, bsc, avalanche, zora
+    chains - list chains for random chain bridge: arbitrum, optimism, polygon, bsc, avalanche, zora
     Disclaimer - The Mint function should be called "mint", to make sure of this, look at the name in Rabby Wallet or in explorer
     """
 

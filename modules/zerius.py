@@ -17,7 +17,6 @@ class Zerius(Account):
         self.contract = self.get_contract(ZERIUS_CONTRACT, ZERIUS_ABI)
 
         self.chain_ids = {
-            "ethereum": 101,
             "zora": 195,
             "arbitrum": 110,
             "optimism": 111,
