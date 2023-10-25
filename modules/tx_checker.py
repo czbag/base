@@ -3,19 +3,18 @@ import random
 
 from eth_typing import ChecksumAddress
 from loguru import logger
-from web3 import Web3, AsyncHTTPProvider
-from web3.eth import AsyncEth
+from web3 import AsyncWeb3
 from eth_account import Account as EthereumAccount
 from tabulate import tabulate
+from web3.middleware import async_geth_poa_middleware
 
 from config import ACCOUNTS, RPC
 
 
 async def get_nonce(address: ChecksumAddress):
-    web3 = Web3(
-        AsyncHTTPProvider(random.choice(RPC["base"]["rpc"])),
-        modules={"eth": (AsyncEth,)},
-        middlewares=[],
+    web3 = AsyncWeb3(
+        AsyncWeb3.AsyncHTTPProvider(random.choice(RPC["base"]["rpc"])),
+        middlewares=[async_geth_poa_middleware],
     )
 
     nonce = await web3.eth.get_transaction_count(address)

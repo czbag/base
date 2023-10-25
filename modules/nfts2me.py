@@ -1,29 +1,27 @@
-from typing import Dict
+import random
+from typing import List
 
 from loguru import logger
-
-from config import MINTFUN_ABI
+from config import NFTS2ME_ABI
 from utils.gas_checker import check_gas
 from utils.helpers import retry
 from .account import Account
 
 
-class MintFun(Account):
+class Minter(Account):
     def __init__(self, account_id: int, private_key: str) -> None:
         super().__init__(account_id=account_id, private_key=private_key, chain="base")
 
     @retry
     @check_gas
-    async def mint(self, nft_contract: str, amount: int):
-        contract = self.get_contract(nft_contract, MINTFUN_ABI)
+    async def mint_nft(self, contracts: List):
+        logger.info(f"[{self.account_id}][{self.address}] Mint NFT on NFTS2ME")
 
-        nft_name = await contract.functions.name().call()
-
-        logger.info(f"[{self.account_id}][{self.address}] Mint {amount} NFT [{nft_name}] on Mint.Fun")
+        contract = self.get_contract(random.choice(contracts), NFTS2ME_ABI)
 
         tx_data = await self.get_tx_data()
 
-        transaction = await contract.functions.mint(amount).build_transaction(tx_data)
+        transaction = await contract.functions.mint(1).build_transaction(tx_data)
 
         signed_txn = await self.sign(transaction)
 

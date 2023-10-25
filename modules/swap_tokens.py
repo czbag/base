@@ -1,8 +1,7 @@
 import random
-from typing import Union, List
+from typing import List
 
 from loguru import logger
-from web3 import Web3
 from config import BASE_TOKENS
 from modules import *
 from utils.sleeping import sleep

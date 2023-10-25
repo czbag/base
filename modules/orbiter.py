@@ -1,6 +1,5 @@
 
 from loguru import logger
-from web3 import Web3
 
 from utils.gas_checker import check_gas
 from utils.helpers import retry
@@ -13,40 +12,30 @@ class Orbiter(Account):
         super().__init__(account_id=account_id, private_key=private_key, chain=chain)
 
         self.bridge_codes = {
-            "ethereum": 9001,
-            "arbitrum": 9002,
-            "polygon": 9006,
-            "optimism": 9007,
-            "zksync": 9014,
-            "bsc": 9015,
-            "nova": 9016,
-            "zkevm": 9017,
-            "base": 9021,
+            "ethereum": "9001",
+            "arbitrum": "9002",
+            "polygon": "9006",
+            "optimism": "9007",
+            "zksync": "9014",
+            "nova": "9016",
+            "zkevm": "9017",
+            "scroll": "9019",
+            "base": "9021",
+            "linea": "9023",
+            "zora": "9030",
         }
-
-    async def get_tx_data(self, value: float, destination_chain: str):
-        amount = int(Web3.to_wei(value, "ether") + self.bridge_codes[destination_chain])
-
-        tx = {
-            "chainId": await self.w3.eth.chain_id,
-            "nonce": await self.w3.eth.get_transaction_count(self.address),
-            "to": Web3.to_checksum_address(ORBITER_CONTRACT),
-            "value": amount,
-            "from": self.address
-        }
-        return tx
 
     @retry
     @check_gas
     async def bridge(
-        self,
-        destination_chain: str,
-        min_amount: float,
-        max_amount: float,
-        decimal: int,
-        all_amount: bool,
-        min_percent: int,
-        max_percent: int
+            self,
+            destination_chain: str,
+            min_amount: float,
+            max_amount: float,
+            decimal: int,
+            all_amount: bool,
+            min_percent: int,
+            max_percent: int
     ):
         amount_wei, amount, balance = await self.get_amount(
             "ETH",
@@ -63,9 +52,15 @@ class Orbiter(Account):
                 f"[{self.account_id}][{self.address}] Limit range amount for bridge 0.005 – 5 ETH | {amount} ETH"
             )
         else:
-            logger.info(f"[{self.account_id}][{self.address}] Bridge {self.chain} –> {destination_chain} | {amount} ETH")
+            logger.info(
+                f"[{self.account_id}][{self.address}] Bridge {self.chain} –> {destination_chain} | {amount} ETH"
+            )
 
-            tx_data = await self.get_tx_data(amount, destination_chain)
+            amount_to_bridge = str(amount_wei).replace(str(amount_wei)[-4:], self.bridge_codes[destination_chain])
+
+            tx_data = await self.get_tx_data(int(amount_to_bridge))
+            tx_data.update({"to": ORBITER_CONTRACT})
+
             balance = await self.w3.eth.get_balance(self.address)
 
             if tx_data["value"] >= balance:

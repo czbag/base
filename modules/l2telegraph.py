@@ -1,7 +1,6 @@
 from typing import Dict
 
 from loguru import logger
-from web3 import Web3
 
 from utils.gas_checker import check_gas
 from utils.helpers import retry
@@ -18,15 +17,6 @@ from config import (
 class L2Telegraph(Account):
     def __init__(self, account_id: int, private_key: str) -> None:
         super().__init__(account_id=account_id, private_key=private_key, chain="base")
-
-    async def get_tx_data(self) -> Dict:
-        tx = {
-            "chainId": await self.w3.eth.chain_id,
-            "from": self.address,
-            "nonce": await self.w3.eth.get_transaction_count(self.address),
-        }
-
-        return tx
 
     async def get_estimate_fee(self, contract_address: str, abi: dict):
         contract = self.get_contract(contract_address, abi)
@@ -55,8 +45,7 @@ class L2Telegraph(Account):
 
         l0_fee = await self.get_estimate_fee(L2TELEGRAPH_MESSAGE_CONTRACT, L2TELEGRAPH_MESSAGE_ABI)
 
-        tx_data = await self.get_tx_data()
-        tx_data.update({"value": Web3.to_wei(0.00025, "ether") + l0_fee})
+        tx_data = await self.get_tx_data(self.w3.to_wei(0.00025, "ether") + l0_fee)
 
         contract = self.get_contract(L2TELEGRAPH_MESSAGE_CONTRACT, L2TELEGRAPH_MESSAGE_ABI)
 
@@ -75,8 +64,7 @@ class L2Telegraph(Account):
     async def mint(self):
         logger.info(f"[{self.account_id}][{self.address}] Mint NFT")
 
-        tx_data = await self.get_tx_data()
-        tx_data.update({"value": Web3.to_wei(0.0005, "ether")})
+        tx_data = await self.get_tx_data(self.w3.to_wei(0.0005, "ether"))
 
         contract = self.get_contract(L2TELEGRAPH_NFT_CONTRACT, L2TELEGRAPH_NFT_ABI)
 
@@ -101,9 +89,7 @@ class L2Telegraph(Account):
 
         await sleep(sleep_from, sleep_to)
 
-        tx_data = await self.get_tx_data()
-        tx_data.update({"value": l0_fee})
-        tx_data.update({"nonce": await self.w3.eth.get_transaction_count(self.address)})
+        tx_data = await self.get_tx_data(l0_fee)
 
         logger.info(f"[{self.account_id}][{self.address}] Bridge NFT [{nft_id}]")
 

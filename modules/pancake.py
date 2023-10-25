@@ -2,7 +2,6 @@ import time
 from typing import Dict
 
 from loguru import logger
-from web3 import Web3
 
 from utils.gas_checker import check_gas
 from utils.helpers import retry
@@ -24,21 +23,12 @@ class Pancake(Account):
 
         self.swap_contract = self.get_contract(PANCAKE_CONTRACTS["router"], PANCAKE_ROUTER_ABI)
 
-    async def get_tx_data(self) -> Dict:
-        tx = {
-            "chainId": await self.w3.eth.chain_id,
-            "from": self.address,
-            "nonce": await self.w3.eth.get_transaction_count(self.address),
-        }
-
-        return tx
-
     async def get_pool(self, from_token: str, to_token: str):
         factory = self.get_contract(PANCAKE_CONTRACTS["factory"], PANCAKE_FACTORY_ABI)
 
         pool = await factory.functions.getPool(
-            Web3.to_checksum_address(BASE_TOKENS[from_token]),
-            Web3.to_checksum_address(BASE_TOKENS[to_token]),
+            self.w3.to_checksum_address(BASE_TOKENS[from_token]),
+            self.w3.to_checksum_address(BASE_TOKENS[to_token]),
             500
         ).call()
 
@@ -48,8 +38,8 @@ class Pancake(Account):
         quoter = self.get_contract(PANCAKE_CONTRACTS["quoter"], PANCAKE_QUOTER_ABI)
 
         quoter_data = await quoter.functions.quoteExactInputSingle((
-            Web3.to_checksum_address(BASE_TOKENS[from_token]),
-            Web3.to_checksum_address(BASE_TOKENS[to_token]),
+            self.w3.to_checksum_address(BASE_TOKENS[from_token]),
+            self.w3.to_checksum_address(BASE_TOKENS[to_token]),
             amount,
             500,
             0
@@ -58,8 +48,7 @@ class Pancake(Account):
         return int(quoter_data[0] - (quoter_data[0] / 100 * slippage))
 
     async def swap_to_token(self, from_token: str, to_token: str, amount: int, slippage: int):
-        tx_data = await self.get_tx_data()
-        tx_data.update({"value": amount})
+        tx_data = await self.get_tx_data(amount)
 
         deadline = int(time.time()) + 1000000
 
@@ -68,8 +57,8 @@ class Pancake(Account):
         transaction_data = self.swap_contract.encodeABI(
             fn_name="exactInputSingle",
             args=[(
-                Web3.to_checksum_address(BASE_TOKENS[from_token]),
-                Web3.to_checksum_address(BASE_TOKENS[to_token]),
+                self.w3.to_checksum_address(BASE_TOKENS[from_token]),
+                self.w3.to_checksum_address(BASE_TOKENS[to_token]),
                 500,
                 self.address,
                 amount,
@@ -88,7 +77,6 @@ class Pancake(Account):
         await self.approve(amount, BASE_TOKENS[from_token], PANCAKE_CONTRACTS["router"])
 
         tx_data = await self.get_tx_data()
-        tx_data.update({"nonce": await self.w3.eth.get_transaction_count(self.address)})
 
         deadline = int(time.time()) + 1000000
 
@@ -97,8 +85,8 @@ class Pancake(Account):
         transaction_data = self.swap_contract.encodeABI(
             fn_name="exactInputSingle",
             args=[(
-                Web3.to_checksum_address(BASE_TOKENS[from_token]),
-                Web3.to_checksum_address(BASE_TOKENS[to_token]),
+                self.w3.to_checksum_address(BASE_TOKENS[from_token]),
+                self.w3.to_checksum_address(BASE_TOKENS[to_token]),
                 500,
                 "0x0000000000000000000000000000000000000002",
                 amount,

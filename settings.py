@@ -10,6 +10,14 @@ SLEEP_TO = 1600  # Second
 CHECK_GWEI = False  # True/False
 MAX_GWEI = 20
 
+GAS_PRIORITY_FEE = {
+    "ethereum": 0.05,
+    "polygon": 40,
+    "arbitrum": 0.1,
+    "base": 0.1,
+    "zksync": 0.25,
+}
+
 GAS_MULTIPLIER = 1.3
 
 # RETRY MODE

@@ -25,15 +25,6 @@ class Zerius(Account):
             "avalanche": 106,
         }
 
-    async def get_tx_data(self) -> Dict:
-        tx = {
-            "chainId": await self.w3.eth.chain_id,
-            "from": self.address,
-            "nonce": await self.w3.eth.get_transaction_count(self.address),
-        }
-
-        return tx
-
     async def get_nft_id(self, txn_hash: str):
         receipts = await self.w3.eth.get_transaction_receipt(txn_hash)
 
@@ -59,8 +50,7 @@ class Zerius(Account):
 
         mint_fee = await self.contract.functions.mintFee().call()
 
-        tx_data = await self.get_tx_data()
-        tx_data.update({"value": mint_fee})
+        tx_data = await self.get_tx_data(mint_fee)
 
         transaction = await self.contract.functions.mint().build_transaction(tx_data)
 
@@ -87,8 +77,7 @@ class Zerius(Account):
 
         base_bridge_fee = await self.contract.functions.bridgeFee().call()
 
-        tx_data = await self.get_tx_data()
-        tx_data.update({"value": l0_fee + base_bridge_fee})
+        tx_data = await self.get_tx_data(l0_fee + base_bridge_fee)
 
         transaction = await self.contract.functions.sendFrom(
             self.address,

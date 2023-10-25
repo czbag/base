@@ -51,6 +51,12 @@ with open("data/abi/maverick/router.json", "r") as file:
 with open("data/abi/bungee/abi.json", "r") as file:
     BUNGEE_ABI = json.load(file)
 
+with open("data/abi/stargate/bridge.json", "r") as file:
+    STARGATE_BRIDGE_ABI = json.load(file)
+
+with open("data/abi/stargate/router.json", "r") as file:
+    STARGATE_ROUTER_ABI = json.load(file)
+
 with open("data/abi/aave/abi.json", "r") as file:
     AAVE_ABI = json.load(file)
 
@@ -71,6 +77,9 @@ with open("data/abi/gnosis/abi.json", "r") as file:
 
 with open("data/abi/zerius/abi.json", "r") as file:
     ZERIUS_ABI = json.load(file)
+
+with open("data/abi/nft2me/abi.json", "r") as file:
+    NFTS2ME_ABI = json.load(file)
 
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
@@ -137,6 +146,11 @@ MAVERICK_CONTRACTS = {
 }
 
 BUNGEE_CONTRACT = "0xe8c5b8488feafb5df316be73ede3bdc26571a773"
+
+STARGATE_CONTRACTS = {
+    "router": "0xAF54BE5B6eEc24d6BFACf1cce4eaF680A8239398",
+    "bridge": "0x50b6ebc2103bfec165949cc946d739d5650d7ae4"
+}
 
 AAVE_CONTRACT = "0x18cd499e3d7ed42feba981ac9236a278e4cdc2ee"
 

@@ -5,14 +5,14 @@ from typing import Union, Type, Dict, Any
 
 from hexbytes import HexBytes
 from loguru import logger
-from web3 import Web3
+from web3 import AsyncWeb3
 from eth_account import Account as EthereumAccount
 from web3.contract import Contract
-from web3.eth import AsyncEth
 from web3.exceptions import TransactionNotFound
+from web3.middleware import async_geth_poa_middleware
 
 from config import RPC, ERC20_ABI, BASE_TOKENS
-from settings import GAS_MULTIPLIER
+from settings import GAS_MULTIPLIER, GAS_PRIORITY_FEE
 from utils.sleeping import sleep
 
 
@@ -24,15 +24,24 @@ class Account:
         self.explorer = RPC[chain]["explorer"]
         self.token = RPC[chain]["token"]
 
-        self.w3 = Web3(
-            Web3.AsyncHTTPProvider(random.choice(RPC[chain]["rpc"])),
-            modules={"eth": (AsyncEth,)},
+        self.w3 = AsyncWeb3(
+            AsyncWeb3.AsyncHTTPProvider(random.choice(RPC[chain]["rpc"])),
+            middlewares=[async_geth_poa_middleware]
         )
         self.account = EthereumAccount.from_key(private_key)
         self.address = self.account.address
 
+    async def get_tx_data(self, value: int = 0):
+        tx = {
+            "chainId": await self.w3.eth.chain_id,
+            "from": self.address,
+            value: value,
+            "nonce": await self.w3.eth.get_transaction_count(self.address),
+        }
+        return tx
+
     def get_contract(self, contract_address: str, abi=None) -> Union[Type[Contract], Contract]:
-        contract_address = Web3.to_checksum_address(contract_address)
+        contract_address = self.w3.to_checksum_address(contract_address)
 
         if abi is None:
             abi = ERC20_ABI
@@ -42,7 +51,7 @@ class Account:
         return contract
 
     async def get_balance(self, contract_address: str) -> Dict:
-        contract_address = Web3.to_checksum_address(contract_address)
+        contract_address = self.w3.to_checksum_address(contract_address)
         contract = self.get_contract(contract_address)
 
         symbol = await contract.functions.symbol().call()
@@ -69,8 +78,8 @@ class Account:
 
         if from_token == "ETH":
             balance = await self.w3.eth.get_balance(self.address)
-            amount_wei = int(balance * percent) if all_amount else Web3.to_wei(random_amount, "ether")
-            amount = Web3.from_wei(int(balance * percent), "ether") if all_amount else random_amount
+            amount_wei = int(balance * percent) if all_amount else self.w3.to_wei(random_amount, "ether")
+            amount = self.w3.from_wei(int(balance * percent), "ether") if all_amount else random_amount
         else:
             balance = await self.get_balance(BASE_TOKENS[from_token])
             amount_wei = int(balance["balance_wei"] * percent) \
@@ -81,8 +90,8 @@ class Account:
         return amount_wei, amount, balance
 
     async def check_allowance(self, token_address: str, contract_address: str) -> int:
-        token_address = Web3.to_checksum_address(token_address)
-        contract_address = Web3.to_checksum_address(contract_address)
+        token_address = self.w3.to_checksum_address(token_address)
+        contract_address = self.w3.to_checksum_address(contract_address)
 
         contract = self.w3.eth.contract(address=token_address, abi=ERC20_ABI)
         amount_approved = await contract.functions.allowance(self.address, contract_address).call()
@@ -90,8 +99,8 @@ class Account:
         return amount_approved
 
     async def approve(self, amount: float, token_address: str, contract_address: str) -> None:
-        token_address = Web3.to_checksum_address(token_address)
-        contract_address = Web3.to_checksum_address(contract_address)
+        token_address = self.w3.to_checksum_address(token_address)
+        contract_address = self.w3.to_checksum_address(contract_address)
 
         contract = self.w3.eth.contract(address=token_address, abi=ERC20_ABI)
 
@@ -142,11 +151,9 @@ class Account:
                 await asyncio.sleep(1)
 
     async def sign(self, transaction) -> Any:
-        max_priority_fee_per_gas = int(await self.w3.eth.max_priority_fee * GAS_MULTIPLIER)
-        max_fee_per_gas = int((await self.w3.eth.gas_price + max_priority_fee_per_gas) * GAS_MULTIPLIER)
-
-        gas = await self.w3.eth.estimate_gas(transaction)
-        gas = int(gas * GAS_MULTIPLIER)
+        max_fee_per_gas = await self.w3.eth.gas_price
+        max_priority_fee_per_gas = self.w3.to_wei(GAS_PRIORITY_FEE[self.chain], "gwei")
+        gas = int(await self.w3.eth.estimate_gas(transaction) * GAS_MULTIPLIER)
 
         transaction.update(
             {

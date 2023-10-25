@@ -31,8 +31,8 @@ async def bridge_orbiter(account_id, key):
     to_chain – ethereum, base, polygon_zkevm, arbitrum, optimism, zksync | Select one
     """
 
-    from_chain = "base"
-    to_chain = "zksync"
+    from_chain = "zksync"
+    to_chain = "base"
 
     min_amount = 0.005
     max_amount = 0.0051
@@ -204,7 +204,8 @@ async def swap_baseswap(account_id, key):
     max_percent = 1
 
     baseswap = BaseSwap(account_id, key)
-    await baseswap.swap(from_token, to_token, min_amount, max_amount, decimal, slippage, all_amount, min_percent, max_percent)
+    await baseswap.swap(from_token, to_token, min_amount, max_amount, decimal, slippage, all_amount, min_percent,
+                        max_percent)
 
 
 async def swap_alienswap(account_id, key):
@@ -410,6 +411,34 @@ async def bungee_refuel(account_id, key):
     await bungee.refuel(chain_list, random_amount)
 
 
+async def stargate_bridge(account_id, key):
+    """
+    Stargate bridge ETH
+    ______________________________________________________
+    to_chain – Choose DESTINATION chain: arbitrum, optimism, linea
+
+    Disclaimer - The chain will be randomly selected
+    ______________________________________________________
+    random_amount – True - amount random from min to max | False - use min amount
+    """
+
+    chain_list = ["arbitrum", "optimism"]
+
+    min_amount = 0.0001
+    max_amount = 0.0002
+    decimal = 5
+
+    slippage = 1
+
+    all_amount = True
+
+    min_percent = 10
+    max_percent = 10
+
+    stargate = Stargate(account_id, key)
+    await stargate.bridge(chain_list, min_amount, max_amount, decimal, slippage, all_amount, min_percent, max_percent)
+
+
 async def deposit_aave(account_id, key):
     """
     Make deposit on Aave
@@ -481,6 +510,19 @@ async def mint_zerius(account_id, key):
     await zerius.bridge(chains, sleep_from, sleep_to)
 
 
+async def mint_nft(account_id, key):
+    """
+    Mint NFT on NFTS2ME
+    ______________________________________________________
+    contracts - list NFT contract addresses
+    """
+
+    contracts = [""]
+
+    minter = Minter(account_id, key)
+    await minter.mint_nft(contracts)
+
+
 async def swap_tokens(account_id, key):
     """
     SwapTokens module: Automatically swap tokens to ETH
@@ -546,6 +588,7 @@ async def custom_routes(account_id, key):
         – bridge_base
         – bridge_orbiter
         – bungee_refuel
+        – stargate_bridge
     WRAP:
         – wrap_eth
         – unwrap_eth
@@ -572,13 +615,14 @@ async def custom_routes(account_id, key):
         – swap_tokens
         – swap_multiswap
         – create_safe
+        – mint_nft
     ______________________________________________________
     Disclaimer - You can add modules to [] to select random ones,
     example [module_1, module_2, [module_3, module_4], module 5]
     The script will start with module 1, 2, 5 and select a random one from module 3 and 4
     """
 
-    use_modules = [[bridge_nft, deposit_aave]]
+    use_modules = [[bridge_nft, deposit_aave, None]]
 
     sleep_from = 10
     sleep_to = 20

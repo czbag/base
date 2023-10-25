@@ -12,12 +12,14 @@ from .openocean import OpenOcean
 from .xyswap import XYSwap
 from .maverick import Maverick
 from .bungee import Bungee
+from .stargate import Stargate
 from .aave import Aave
 from .l2telegraph import L2Telegraph
 from .mintfun import MintFun
 from .zerius import Zerius
 from .rai import Rai
 from .safe import GnosisSafe
+from .nfts2me import Minter
 from .swap_tokens import SwapTokens
 from .multiswap import Multiswap
 from .routes import Routes

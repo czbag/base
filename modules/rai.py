@@ -2,7 +2,6 @@ import random
 from typing import Dict
 
 from loguru import logger
-from web3 import Web3
 
 from config import RAI_CONTRACT, RAI_ABI, BASE_TOKENS
 from utils.gas_checker import check_gas
@@ -16,15 +15,6 @@ class Rai(Account):
 
         self.contract = self.get_contract(RAI_CONTRACT, RAI_ABI)
 
-    async def get_tx_data(self) -> Dict:
-        tx = {
-            "chainId": await self.w3.eth.chain_id,
-            "from": self.address,
-            "nonce": await self.w3.eth.get_transaction_count(self.address),
-        }
-
-        return tx
-
     @retry
     @check_gas
     async def create(self):
@@ -33,7 +23,7 @@ class Rai(Account):
         tokens = [i for i in BASE_TOKENS if i != "ETH"]
 
         components = [
-            Web3.to_checksum_address(BASE_TOKENS[token]) for token in random.sample(
+            self.w3.to_checksum_address(BASE_TOKENS[token]) for token in random.sample(
                 tokens, random.randint(1, len(tokens))
             )
         ]
@@ -49,8 +39,8 @@ class Rai(Account):
             components,
             amounts,
             [
-                Web3.to_checksum_address("0x1e6Dbd0E827cd243d458ed73B9Ae1a6Db89B8668"),
-                Web3.to_checksum_address("0x4E69553b0aEf0949Fd38Bbf3EbeD866B431C9E68")
+                self.w3.to_checksum_address("0x1e6Dbd0E827cd243d458ed73B9Ae1a6Db89B8668"),
+                self.w3.to_checksum_address("0x4E69553b0aEf0949Fd38Bbf3EbeD866B431C9E68")
             ],
             self.address,
             name.title() if random.randint(0, 1) else name,

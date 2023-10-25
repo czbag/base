@@ -30,19 +30,21 @@ def get_module():
             Choice("13) Swap on OpenOcean", swap_openocean),
             Choice("14) Swap on XYSwap", swap_xyswap),
             Choice("15) Bungee Refuel", bungee_refuel),
-            Choice("16) Deposit Aave", deposit_aave),
-            Choice("17) Withdraw Aave", withdraw_aave),
-            Choice("18) Mint NFT on MintFun", mint_mintfun),
-            Choice("19) Mint and Bridge Zerius NFT", mint_zerius),
-            Choice("20) Send message L2Telegraph", send_message),
-            Choice("21) Mint and bridge NFT L2Telegraph", bridge_nft),
-            Choice("22) Create portfolio on Ray", create_portfolio),
-            Choice("23) Create gnosis safe", create_safe),
-            Choice("24) Swap tokens to ETH", swap_tokens),
-            Choice("25) Use Multiswap", swap_multiswap),
-            Choice("26) Use custom routes", custom_routes),
-            Choice("27) Check transaction count", "tx_checker"),
-            Choice("28) Exit", "exit"),
+            Choice("16) Stargate bridge", stargate_bridge),
+            Choice("17) Deposit Aave", deposit_aave),
+            Choice("18) Withdraw Aave", withdraw_aave),
+            Choice("19) Mint NFT on MintFun", mint_mintfun),
+            Choice("20) Mint and Bridge Zerius NFT", mint_zerius),
+            Choice("21) Send message L2Telegraph", send_message),
+            Choice("22) Mint and bridge NFT L2Telegraph", bridge_nft),
+            Choice("23) Create portfolio on Ray", create_portfolio),
+            Choice("24) Create gnosis safe", create_safe),
+            Choice("25) Mint NFT on NFTS2ME", mint_nft),
+            Choice("26) Swap tokens to ETH", swap_tokens),
+            Choice("27) Use Multiswap", swap_multiswap),
+            Choice("28) Use custom routes", custom_routes),
+            Choice("29) Check transaction count", "tx_checker"),
+            Choice("30) Exit", "exit"),
         ],
         qmark="⚙️ ",
         pointer="✅ "
@@ -107,6 +109,8 @@ async def main(module):
 
 if __name__ == '__main__':
     print("❤️ Subscribe to me – https://t.me/sybilwave\n")
+
+    update_run_accounts(0, "new")
 
     module = get_module()
     if module == "tx_checker":
