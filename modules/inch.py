@@ -1,9 +1,7 @@
-from typing import Union, Dict
+from typing import Dict
 
 import aiohttp
-import requests
 from loguru import logger
-from web3 import Web3
 from config import INCH_CONTRACT, BASE_TOKENS
 from settings import INCH_API_KEY
 from utils.gas_checker import check_gas
@@ -17,20 +15,12 @@ class Inch(Account):
 
         self.headers = {"Authorization": f"Bearer {INCH_API_KEY}", "accept": "application/json"}
 
-    async def get_tx_data(self) -> Dict:
-        tx = {
-            "chainId": await self.w3.eth.chain_id,
-            "from": self.address,
-            "nonce": await self.w3.eth.get_transaction_count(self.address),
-        }
-
-        return tx
-
     async def build_tx(self, from_token: str, to_token: str, amount: int, slippage: int):
         url = f"https://api.1inch.dev/swap/v5.2/{await self.w3.eth.chain_id}/swap"
+
         params = {
-            "src": Web3.to_checksum_address(from_token),
-            "dst": Web3.to_checksum_address(to_token),
+            "src": self.w3.to_checksum_address(from_token),
+            "dst": self.w3.to_checksum_address(to_token),
             "amount": amount,
             "from": self.address,
             "slippage": slippage,
@@ -38,7 +28,7 @@ class Inch(Account):
 
         if INCH_CONTRACT["use_ref"]:
             params.update({
-                "referrer": Web3.to_checksum_address("0x1c7ff320ae4327784b464eed07714581643b36a7"),
+                "referrer": self.w3.to_checksum_address("0x1c7ff320ae4327784b464eed07714581643b36a7"),
                 "fee": 1
             })
 
@@ -88,7 +78,7 @@ class Inch(Account):
         tx_data = await self.get_tx_data()
         tx_data.update(
             {
-                "to": Web3.to_checksum_address(transaction_data["tx"]["to"]),
+                "to": self.w3.to_checksum_address(transaction_data["tx"]["to"]),
                 "data": transaction_data["tx"]["data"],
                 "value": int(transaction_data["tx"]["value"]),
             }
