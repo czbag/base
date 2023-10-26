@@ -47,6 +47,10 @@ class Orbiter(Account):
             max_percent
         )
 
+        if ORBITER_CONTRACT == "":
+            logger.error(f"[{self.account_id}][{self.address}] Don't have orbiter contract")
+            return
+
         if amount < 0.005 or amount > 5:
             logger.error(
                 f"[{self.account_id}][{self.address}] Limit range amount for bridge 0.005 – 5 ETH | {amount} ETH"
