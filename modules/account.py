@@ -35,7 +35,7 @@ class Account:
         tx = {
             "chainId": await self.w3.eth.chain_id,
             "from": self.address,
-            value: value,
+            "value": value,
             "nonce": await self.w3.eth.get_transaction_count(self.address),
         }
         return tx
