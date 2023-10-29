@@ -60,6 +60,9 @@ with open("data/abi/stargate/router.json", "r") as file:
 with open("data/abi/aave/abi.json", "r") as file:
     AAVE_ABI = json.load(file)
 
+with open("data/abi/moonwell/abi.json", "r") as file:
+    MOONWELL_ABI = json.load(file)
+
 with open("data/abi/l2telegraph/send_message.json", "r") as file:
     L2TELEGRAPH_MESSAGE_ABI = json.load(file)
 
@@ -155,6 +158,10 @@ STARGATE_CONTRACTS = {
 AAVE_CONTRACT = "0x18cd499e3d7ed42feba981ac9236a278e4cdc2ee"
 
 AAVE_WETH_CONTRACT = "0xD4a0e0b9149BCee3C920d2E00b5dE09138fd8bb7"
+
+MOONWELL_CONTRACT = "0x70778cfcFC475c7eA0f24cC625Baf6EaE475D0c9"
+
+MOONWELL_WETH_CONTRACT = "0x628ff693426583D9a7FB391E54366292F509D457"
 
 MINTFUN_CONTRACT = "0xf39ac57beaf8f97b89db7a9203a4e47c17cf4391"
 

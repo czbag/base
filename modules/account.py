@@ -98,7 +98,7 @@ class Account:
 
         return amount_approved
 
-    async def approve(self, amount: float, token_address: str, contract_address: str) -> None:
+    async def approve(self, amount: int, token_address: str, contract_address: str) -> None:
         token_address = self.w3.to_checksum_address(token_address)
         contract_address = self.w3.to_checksum_address(contract_address)
 
@@ -111,16 +111,12 @@ class Account:
 
             approve_amount = 2 ** 128 if amount > allowance_amount else 0
 
-            tx = {
-                "chainId": await self.w3.eth.chain_id,
-                "from": self.address,
-                "nonce": await self.w3.eth.get_transaction_count(self.address)
-            }
+            tx_data = await self.get_tx_data()
 
             transaction = await contract.functions.approve(
                 contract_address,
                 approve_amount
-            ).build_transaction(tx)
+            ).build_transaction(tx_data)
 
             signed_txn = await self.sign(transaction)
 

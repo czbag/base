@@ -467,6 +467,34 @@ async def deposit_aave(account_id, key):
     )
 
 
+async def deposit_moonwell(account_id, key):
+    """
+    Make deposit on MoonWell
+    ______________________________________________________
+    make_withdraw - True, if need withdraw after deposit
+
+    all_amount - deposit from min_percent to max_percent
+    """
+    min_amount = 0.0001
+    max_amount = 0.0002
+    decimal = 5
+
+    sleep_from = 5
+    sleep_to = 24
+
+    make_withdraw = True
+
+    all_amount = True
+
+    min_percent = 5
+    max_percent = 10
+
+    moonwell = MoonWell(account_id, key)
+    await moonwell.deposit(
+        min_amount, max_amount, decimal, sleep_from, sleep_to, make_withdraw, all_amount, min_percent, max_percent
+    )
+
+
 async def bridge_nft(account_id, key):
     """
     Make mint NFT and bridge NFT on L2Telegraph
@@ -486,11 +514,13 @@ async def mint_mintfun(account_id, key):
     Disclaimer - The Mint function should be called "mint", to make sure of this, look at the name in Rabby Wallet or in explorer
     """
 
-    nft_contract = "0x"
-    amount = 0
+    nft_contracts_data = {
+        "0x69b69cc6e9f99c62a003fd9e143c126504d49dc2": 1,
+        "0xea0b3e39ccd46d7F2B338D784De8519902f7E17E": 3,
+    }
 
     mintfun = MintFun(account_id, key)
-    await mintfun.mint(nft_contract, amount)
+    await mintfun.mint(nft_contracts_data)
 
 
 async def mint_zerius(account_id, key):
@@ -605,7 +635,9 @@ async def custom_routes(account_id, key):
         – swap_xyswap
     LANDING:
         – deposit_aave
+        – deposit_moonwell
         – withdraw_aave
+        – withdraw_moonwell
     NFT/DOMAIN:
         – mint_mintfun
     ANOTHER:
@@ -640,6 +672,11 @@ async def custom_routes(account_id, key):
 async def withdraw_aave(account_id, key):
     aave = Aave(account_id, key)
     await aave.withdraw()
+
+
+async def withdraw_moonwell(account_id, key):
+    moonwell = MoonWell(account_id, key)
+    await moonwell.withdraw()
 
 
 async def send_message(account_id, key):

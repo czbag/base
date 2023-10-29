@@ -1,4 +1,4 @@
-from typing import Dict
+import random
 
 from loguru import logger
 
@@ -14,8 +14,12 @@ class MintFun(Account):
 
     @retry
     @check_gas
-    async def mint(self, nft_contract: str, amount: int):
-        contract = self.get_contract(nft_contract, MINTFUN_ABI)
+    async def mint(self, nft_contracts_data: dict):
+        mint_contract = random.choice(list(nft_contracts_data))
+
+        amount = nft_contracts_data[mint_contract]
+
+        contract = self.get_contract(mint_contract, MINTFUN_ABI)
 
         nft_name = await contract.functions.name().call()
 
@@ -23,7 +27,9 @@ class MintFun(Account):
 
         tx_data = await self.get_tx_data()
 
-        transaction = await contract.functions.mint(amount).build_transaction(tx_data)
+        mint_data = self.address if amount == 1 else amount
+
+        transaction = await contract.functions.mint(mint_data).build_transaction(tx_data)
 
         signed_txn = await self.sign(transaction)
 

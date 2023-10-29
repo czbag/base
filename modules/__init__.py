@@ -14,6 +14,7 @@ from .maverick import Maverick
 from .bungee import Bungee
 from .stargate import Stargate
 from .aave import Aave
+from .moonwell import MoonWell
 from .l2telegraph import L2Telegraph
 from .mintfun import MintFun
 from .zerius import Zerius

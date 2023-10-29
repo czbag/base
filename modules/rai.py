@@ -45,7 +45,6 @@ class Rai(Account):
             self.address,
             name.title() if random.randint(0, 1) else name,
             symbol
-
         ).build_transaction(tx_data)
 
         signed_txn = await self.sign(transaction)
