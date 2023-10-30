@@ -652,9 +652,17 @@ async def custom_routes(account_id, key):
     Disclaimer - You can add modules to [] to select random ones,
     example [module_1, module_2, [module_3, module_4], module 5]
     The script will start with module 1, 2, 5 and select a random one from module 3 and 4
+
+    You can also specify None in [], and if None is selected by random, this module will be skipped
+
+    You can also specify () to perform the desired action a certain number of times
+    example (send_mail, 1, 10) run this module 1 to 10 times
     """
 
-    use_modules = [[bridge_nft, deposit_aave, None]]
+    use_modules = [
+        [bridge_nft, deposit_aave, None],
+        (bridge_nft, 1, 3),
+    ]
 
     sleep_from = 10
     sleep_to = 20
