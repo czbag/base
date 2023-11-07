@@ -21,6 +21,7 @@ from .zerius import Zerius
 from .rai import Rai
 from .safe import GnosisSafe
 from .nfts2me import Minter
+from .dmail import Dmail
 from .swap_tokens import SwapTokens
 from .multiswap import Multiswap
 from .routes import Routes

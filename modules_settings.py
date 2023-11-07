@@ -640,8 +640,10 @@ async def custom_routes(account_id, key):
         – withdraw_moonwell
     NFT/DOMAIN:
         – mint_mintfun
+        – mint_nft
     ANOTHER:
         – send_message
+        – send_mail (Dmail)
         – bridge_nft
         – create_portfolio
         – swap_tokens
@@ -676,6 +678,9 @@ async def custom_routes(account_id, key):
 #########################################
 ########### NO NEED TO CHANGE ###########
 #########################################
+async def send_mail(account_id, key):
+    dmail = Dmail(account_id, key)
+    await dmail.send_mail()
 
 async def withdraw_aave(account_id, key):
     aave = Aave(account_id, key)
