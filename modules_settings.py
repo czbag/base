@@ -553,6 +553,46 @@ async def mint_nft(account_id, key):
     await minter.mint_nft(contracts)
 
 
+async def mint_zkstars(account_id, key):
+    """
+    Mint ZkStars NFT
+    """
+
+    contracts = [
+        "0x4c78c7d2f423cf07c6dc2542ac000c4788f03657",
+        "0x657130a14e93731dfecc772d210ae8333303986c",
+        "0x004416bef2544df0f02f23788c6ada0775868560",
+        "0x39b06911d22f4d3191827ed08ae35b84f68843e4",
+        "0x8a6a9ef84cd819a54eee3cf7cfd351d21ab6b5fe",
+        "0x8fb3225d0a85f2a49714acd36cdcd96a7b2b7fbc",
+        "0x91ad9ed35b1e9ff6975aa94690fa438efb5a7160",
+        "0x32d8eeb70eab5f5962190a2bb78a10a5a0958649",
+        "0xab62313752f90c24405287ad8c3bcf4c25c26e57",
+        "0x6f562b821b5cb93d4de2b0bd558cc8e46b632a08",
+        "0xb63159a26664a89abce783437fc17786af8bb46d",
+        "0x7e6b32d7eecddb6be496f232ab9316a5bf9f4e17",
+        "0xcb03866371fb149f3992f8d623d5aaa4b831e2fd",
+        "0x78c85441f53a07329e2380e49f1870199f70cee1",
+        "0x54c49cb80a0679e3217f86d891859b4e477b56c3",
+        "0xad6f16f5ff3461c83d639901bae1fb2a8a68aa31",
+        "0x023a7c97679f2c121a31bacf37292dabf7ab97e9",
+        "0x5dabff127cad8d075b5cea7f795dcbae1ddf471d",
+        "0xd3c6386362dabab1a30acc2c377d9ac2cc8b7b16",
+        "0xed0407d6b84b2c86418cac16a347930b222b505c"
+    ]
+
+    mint_min = 1
+    mint_max = 1
+
+    mint_all = False
+
+    sleep_from = 5
+    sleep_to = 10
+
+    zkkstars = ZkStars(account_id, key)
+    await zkkstars.mint(contracts, mint_min, mint_max, mint_all, sleep_from, sleep_to)
+
+
 async def swap_tokens(account_id, key):
     """
     SwapTokens module: Automatically swap tokens to ETH
@@ -639,6 +679,8 @@ async def custom_routes(account_id, key):
         – withdraw_aave
         – withdraw_moonwell
     NFT/DOMAIN:
+        – mint_zerius
+        – mint_zkstars
         – mint_mintfun
         – mint_nft
     ANOTHER:

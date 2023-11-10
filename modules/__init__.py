@@ -18,6 +18,7 @@ from .moonwell import MoonWell
 from .l2telegraph import L2Telegraph
 from .mintfun import MintFun
 from .zerius import Zerius
+from .zkstars import ZkStars
 from .rai import Rai
 from .safe import GnosisSafe
 from .nfts2me import Minter
