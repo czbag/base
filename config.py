@@ -90,6 +90,9 @@ with open("data/abi/dmail/abi.json", "r") as file:
 with open("data/abi/zkstars/abi.json", "r") as file:
     ZKSTARS_ABI = json.load(file)
 
+with open("data/abi/rocketsam/abi.json", "r") as file:
+    ROCKETSAM_ABI = json.load(file)
+
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 BASE_BRIDGE_CONTRACT = "0x49048044D57e1C92A77f79988d21Fa8fAF74E97e"

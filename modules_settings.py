@@ -495,6 +495,72 @@ async def deposit_moonwell(account_id, key):
     )
 
 
+async def deposit_rocketsam(account_id, key):
+    """
+    Make deposit on RocketSam
+    ______________________________________________________
+    make_withdraw - True, if need withdraw after deposit
+
+    all_amount - deposit from min_percent to max_percent
+    """
+    contracts = [
+        "0x634607B44e21F4b71e7bD5e19d5b8E4dC99Ab9C4",
+        "0x1077df51A4059477826549101a30a70b9579A08B",
+        "0x802DbB9efE447f8e4f578EB7add3F7e43E89C529",
+        "0x0c9Bfb785E6582A15d6523252675abaA7350Bf76",
+        "0x288df8088905D71Ff052bf052f3A0ff11A6CDa46",
+        "0x2B4a7822F3de8bd6cb0552f562b40a391890E945",
+        "0x553a8EFa12d333c864c89CB809D68268C836B70a",
+        "0x5ae3cB086887A6FB7662eE58Cf1d5113E69bBA62",
+        "0x1feF777Fb93Aa45a6Cefcf5507c665b64b301FB3",
+        "0x0557D4C04BB994719b087d2950841BF25cf39899",
+    ]
+
+    min_amount = 0.0001
+    max_amount = 0.0002
+    decimal = 5
+
+    sleep_from = 1
+    sleep_to = 1
+
+    make_withdraw = True
+
+    all_amount = True
+
+    min_percent = 1
+    max_percent = 1
+
+    rocketsam = RocketSam(account_id, key)
+    await rocketsam.deposit(
+        contracts, min_amount, max_amount, decimal, sleep_from, sleep_to,
+        make_withdraw, all_amount, min_percent, max_percent
+    )
+
+
+async def withdraw_rocketsam(account_id, key):
+    """
+    Make withdraw from RocketSam
+    """
+    contracts = [
+        "0x634607B44e21F4b71e7bD5e19d5b8E4dC99Ab9C4",
+        "0x1077df51A4059477826549101a30a70b9579A08B",
+        "0x802DbB9efE447f8e4f578EB7add3F7e43E89C529",
+        "0x0c9Bfb785E6582A15d6523252675abaA7350Bf76",
+        "0x288df8088905D71Ff052bf052f3A0ff11A6CDa46",
+        "0x2B4a7822F3de8bd6cb0552f562b40a391890E945",
+        "0x553a8EFa12d333c864c89CB809D68268C836B70a",
+        "0x5ae3cB086887A6FB7662eE58Cf1d5113E69bBA62",
+        "0x1feF777Fb93Aa45a6Cefcf5507c665b64b301FB3",
+        "0x0557D4C04BB994719b087d2950841BF25cf39899",
+    ]
+
+    sleep_from = 10
+    sleep_to = 30
+
+    rocketsam = RocketSam(account_id, key)
+    await rocketsam.withdraw(contracts, sleep_from, sleep_to)
+
+
 async def bridge_nft(account_id, key):
     """
     Make mint NFT and bridge NFT on L2Telegraph
@@ -678,6 +744,8 @@ async def custom_routes(account_id, key):
         – deposit_moonwell
         – withdraw_aave
         – withdraw_moonwell
+        – deposit_rocketsam
+        – withdraw_rocketsam
     NFT/DOMAIN:
         – mint_zerius
         – mint_zkstars
